@@ -1,0 +1,279 @@
+-- SLASHER GUI V1 FIXED
+-- Combined Features: Draggable (PC & Mobile), Minimize/Maximize, ScrollingFrame Layout, Looped Sound Service Playback, F3X Remotes.
+
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local SoundService = game:GetService("SoundService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local DECAL_ID = "108090882481963"
+local TEXTURE_ID = "rbxassetid://108090882481963"
+local MUSIC_ID = "rbxassetid://1240042165"
+
+-- Create Screen GUI Core Container
+local CoreGui = game:GetService("CoreGui") or Players.LocalPlayer:WaitForChild("PlayerGui")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SlasherGuiV1Fixed"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+-- Main Panel Structure
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 250, 0, 260)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -130)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+-- Header Title & Input Boundary
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, -40, 0, 40)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Title.Text = "  SLASHER GUI V1 FIXED"
+Title.TextColor3 = Color3.fromRGB(255, 0, 0)
+Title.TextSize = 16
+Title.Font = Enum.Font.SourceSansBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.BorderSizePixel = 0
+Title.Parent = MainFrame
+
+-- Top Right Window Control Button
+local MinBtn = Instance.new("TextButton")
+MinBtn.Name = "MinBtn"
+MinBtn.Size = UDim2.new(0, 40, 0, 40)
+MinBtn.Position = UDim2.new(1, -40, 0, 0)
+MinBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MinBtn.Text = "-"
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.TextSize = 20
+MinBtn.Font = Enum.Font.SourceSansBold
+MinBtn.BorderSizePixel = 0
+MinBtn.Parent = MainFrame
+
+-- Scrollable Viewport Layer
+local ContentFrame = Instance.new("ScrollingFrame")
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Size = UDim2.new(1, 0, 1, -40)
+ContentFrame.Position = UDim2.new(0, 0, 0, 40)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.BorderSizePixel = 0
+ContentFrame.ScrollBarThickness = 6
+ContentFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 0, 0)
+ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ContentFrame.Parent = MainFrame
+
+-- Content Vertical Layout Engine
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Parent = ContentFrame
+
+-- Update scrolling canvas tracking size
+UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ContentFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 20)
+end)
+
+local UIPadding = Instance.new("UIPadding")
+UIPadding.PaddingTop = UDim.new(0, 10)
+UIPadding.Parent = ContentFrame
+
+-- Dynamic Interface Generator
+local function createButton(name, text, layoutOrder)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(0, 210, 0, 40)
+    button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextSize = 16
+    button.Font = Enum.Font.SourceSans
+    button.BorderSizePixel = 0
+    button.LayoutOrder = layoutOrder
+    button.Parent = ContentFrame
+    
+    button.MouseEnter:Connect(function() button.BackgroundColor3 = Color3.fromRGB(60, 60, 60) end)
+    button.MouseLeave:Connect(function() button.BackgroundColor3 = Color3.fromRGB(45, 45, 45) end)
+    
+    return button
+end
+
+-- Layout Element Allocation
+local DecalBtn = createButton("DecalSpamBtn", "Decal Spam", 1)
+local SkyboxBtn = createButton("SkyboxBtn", "Skybox", 2)
+local ParticlesBtn = createButton("ParticlesBtn", "Particles", 3)
+local KrabsBtn = createButton("MrKrabsBtn", "Mr Krabs", 4)
+
+-- ==========================================================
+-- CROSS-PLATFORM MOUSE & TOUCH INPUT TRACKER
+-- ==========================================================
+local dragging, dragInput, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+Title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Title.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- ==========================================================
+-- ANIMATED CONTAINER INTERFACE SYSTEM
+-- ==========================================================
+local isMinimized = false
+local originalSize = MainFrame.Size
+local minimizedSize = UDim2.new(0, 250, 0, 40)
+
+MinBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    
+    local targetSize = isMinimized and minimizedSize or originalSize
+    MinBtn.Text = isMinimized and "+" or "-"
+    
+    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(MainFrame, tweenInfo, {Size = targetSize})
+    tween:Play()
+    
+    if isMinimized then
+        ContentFrame.Visible = false
+    else
+        tween.Completed:Connect(function()
+            if not isMinimized then ContentFrame.Visible = true end
+        end)
+    end
+end)
+
+-- ==========================================================
+-- BTOOLS SUITE SYSTEM ROUTER
+-- ==========================================================
+local function getF3XRemote()
+    local lp = Players.LocalPlayer
+    local tool = (lp.Character and lp.Character:FindFirstChild("Building Tools+")) or (lp:FindFirstChild("Backpack") and lp.Backpack:FindFirstChild("Building Tools+"))
+    
+    if tool and tool:FindFirstChild("SyncAPI") then
+        return tool.SyncAPI:FindFirstChild("ServerEndpoint")
+    end
+    
+    for _, v in ipairs(Workspace:GetDescendants()) do
+        if v.Name == "SyncAPI" and v:FindFirstChild("ServerEndpoint") then
+            return v.ServerEndpoint
+        end
+    end
+    return nil
+end
+
+-- ==========================================================
+-- EVENT INTERFACE CALLS
+-- ==========================================================
+
+-- 1. F3X Sync API Part Modification
+DecalBtn.MouseButton1Click:Connect(function()
+    local remote = getF3XRemote()
+    if not remote then
+        warn("F3X Building Tools configuration absent.")
+        return
+    end
+    
+    local targets = {}
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and not obj:IsA("Terrain") then
+            table.insert(targets, obj)
+        end
+    end
+    
+    if #targets > 0 then
+        remote:InvokeServer("CreateTextures", targets, {
+            Texture = DECAL_ID,
+            Face = Enum.NormalId.Front
+        })
+    end
+end)
+
+-- 2. Client Space Skybox Overrides
+SkyboxBtn.MouseButton1Click:Connect(function()
+    for _, obj in ipairs(Lighting:GetChildren()) do
+        if obj:IsA("Sky") then obj:Destroy() end
+    end
+    local sky = Instance.new("Sky")
+    sky.SkyboxBk = TEXTURE_ID sky.SkyboxDn = TEXTURE_ID sky.SkyboxFt = TEXTURE_ID
+    sky.SkyboxLf = TEXTURE_ID sky.SkyboxRt = TEXTURE_ID sky.SkyboxUp = TEXTURE_ID
+    sky.Parent = Lighting
+end)
+
+-- 3. Dynamic Player Core Particle Attachment
+ParticlesBtn.MouseButton1Click:Connect(function()
+    local function addParticlesToPlayer(player)
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            if not hrp:FindFirstChild("SlasherParticle") then
+                local emitter = Instance.new("ParticleEmitter")
+                emitter.Name = "SlasherParticle"
+                emitter.Texture = TEXTURE_ID
+                emitter.Size = NumberSequence.new(2)
+                emitter.Speed = NumberRange.new(2)
+                emitter.Rate = 1
+                emitter.Lifetime = NumberRange.new(3, 5)
+                emitter.Parent = hrp
+            end
+        end
+    end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        addParticlesToPlayer(player)
+        player.CharacterAdded:Connect(function()
+            task.wait(0.5) addParticlesToPlayer(player)
+        end)
+    end
+    
+    Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function()
+            task.wait(0.5) addParticlesToPlayer(player)
+        end)
+    end)
+end)
+
+-- 4. Sound Engine Controller Setup
+local activeSound = nil
+KrabsBtn.MouseButton1Click:Connect(function()
+    if activeSound then 
+        activeSound:Stop() 
+        activeSound:Destroy() 
+    end
+    
+    activeSound = Instance.new("Sound")
+    activeSound.SoundId = MUSIC_ID
+    activeSound.Volume = 1
+    activeSound.Looped = true
+    activeSound.Parent = SoundService
+    activeSound:Play()
+end)
